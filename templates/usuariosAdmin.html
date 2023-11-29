@@ -1,0 +1,346 @@
+<head>
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}" />
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{ url_for('static', filename='vendor/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}">
+
+
+</head>
+
+{% extends 'base/baseAdmin.html'%}
+
+{% block contenido %}
+<!-- Container Fluid-->
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="inicio">Menú Principal</a></li>
+      <li class="breadcrumb-item">Mantenimiento</li>
+      <li class="breadcrumb-item active" aria-current="page">Usuarios</li>
+    </ol>
+  </div>
+
+  <!-- Row -->
+  <!-- Row -->
+  <div class="row">
+    <!-- Datatables -->
+    <div class="col-lg-12">
+      <div class="card mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Usuarios</h6>
+          <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#registrarModal">
+            Agregar Usuario
+          </button>
+        </div>
+        <div class="table-responsive p-3">
+          <table class="table align-items-center table-flush" id="dataTable">
+            <thead class="thead-light">
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Nombres</th>
+                <th>Tipo de Usuario</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for usuario in usuarios %}
+              <tr>
+                <td>{{ usuario[0] }}</td>
+                <td>{{ usuario[1] }}</td>
+                <td>{{ usuario[2] }}</td>
+                <td>{{ usuario[3] }}</td>
+                <td>
+                  <div class="button-container">
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#agregarModal"
+                      data-usuario-id="{{ usuario[0] }}" onclick="cargarDatosUsuario(this)">
+                      <i class="fas fa-edit"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal"
+                      data-target="#confirmDeleteModal" data-usuario-id="{{ usuario[0] }}">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Row-->
+  <!-- Scroll to top -->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+  <!-- Modal Agregar/Editar Alimento -->
+  <div class="modal fade" id="agregarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Editar Usuario</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editarForm" action="/editarusuario" method="post">
+            <div class="form-group">
+              <label for="idusuarios">ID del Usuario</label>
+              <input type="text" class="form-control" id="idusuarios" name="idusuarios" readonly>
+            </div>
+            <div class="form-group">
+              <label for="nombres">Nombres</label>
+              <input type="text" class="form-control" id="nombres" name="nombres" placeholder="Ingrese sus nombres"
+                value="{{nombres}}">
+            </div>
+            <div class="form-group">
+              <label for="apellidos">Apellidos</label>
+              <input type="text" class="form-control" id="apellidos" name="apellidos"
+                placeholder="Ingrese sus apellidos" min="0">
+            </div>
+            <div class="form-group">
+              <label for="correo">Correo Electrónico</label>
+              <input type="text" class="form-control" id="correo" name="correo"
+                placeholder="Ingrese su correo electrónico" min="0">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="editarUsuario()">Editar Usuario</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Agregar/Editar Alimento -->
+  <div class="modal fade" id="registrarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Agregar Usuario</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="agregarForm" action="/agregarusuario" method="post">
+            <div class="form-group">
+              <label for="dniag">DNI</label>
+              <input type="text" class="form-control" id="dniag" name="dniag" oninput="validarCampoNumerico(this)"
+                maxlength="8" placeholder="Ingrese el DNI a buscar" min="0" required>
+              <button type="button" class="btn btn-primary" onclick="buscarDNIAgregar()">Buscar</button>
+            </div>
+            <div class="form-group">
+              <label for="nombresag">Nombres</label>
+              <input type="text" class="form-control" id="nombresag" name="nombresag" placeholder="Nombres Completos"
+                readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Paterno</label>
+              <input type="text" class="form-control" id="apellidospaag" name="apellidospaag"
+                placeholder="Apellido Paterno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Materno</label>
+              <input type="text" class="form-control" id="apellidosmaag" name="apellidosmaag"
+                placeholder="Apellido Materno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="genero">Género</label>
+              <select class="form-control" id="genero" name="genero">
+                <option value="0">Masculino</option>
+                <option value="1">Femenino</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="correo">Correo Electrónico</label>
+              <input type="text" class="form-control" id="correo" name="correo"
+                placeholder="Ingrese su correo electrónico" min="0">
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechanacimiento" name="fechanacimiento"
+                placeholder="Seleccione la fecha de nacimiento" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="contraseña">Contraseña</label>
+              <input type="password" class="form-control" id="contraseña" name="contraseña"
+                placeholder="Ingrese su contraseña">
+            </div>
+            <div class="form-group">
+              <label for="rcontraseña">Repetir Contraseña</label>
+              <input type="password" class="form-control" id="rcontraseña" name="rcontraseña"
+                placeholder="Repita nuevamente la contraseña">
+              <small id="contraseñaError" class="form-text text-danger"></small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="agregarUsuario()">Registrar Usuario</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de eliminación -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Advertencia</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="borrarUsuarioform" action="/borrarusuario" method="post">
+          <input id="idusuario" name="idusuario" value="" hidden>
+          <div class="modal-body">
+            <p>Se eliminarán todos los datos del usuario.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" onclick="borrarUsuario()">Eliminar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function validarCampoNumerico(input) {
+      // Eliminamos cualquier carácter no numérico
+      input.value = input.value.replace(/[^0-9]/g, '');
+    }
+    function buscarDNIAgregar() {
+      const dniInput = document.getElementById("dniag").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresag").value = data['nombres'];
+          document.getElementById("apellidospaag").value = data['apellidoPaterno'];
+          document.getElementById("apellidosmaag").value = data['apellidoMaterno'];
+        })
+        .catch(error => console.error(error));
+    }
+    function buscarDNIEditar() {
+      const dniInput = document.getElementById("dnied").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresed").value = data['nombres'];
+          document.getElementById("apellidospaed").value = data['apellidoPaterno'];
+          document.getElementById("apellidosmaed").value = data['apellidoMaterno'];
+        })
+        .catch(error => console.error(error));
+    }
+  </script>
+  <script>
+    function cargarDatosUsuario(button) {
+      var idUsuario = $(button).data("usuario-id");  // Obtener el ID del usuario del atributo data
+      // Realizar una solicitud AJAX para obtener los datos del usuario
+      $.ajax({
+        url: "/tablausuarios",  // Ruta de la solicitud al servidor
+        type: "POST",
+        data: JSON.stringify({ idusuario: idUsuario }),
+        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        success: function (response) {
+          $('#idusuarios').val(response.idusuario);
+          $('#nombres').val(response.nombres);
+          $('#apellidos').val(response.apellidos);
+          $('#correo').val(response.correo);
+        },
+        error: function () {
+          alert("Ha ocurrido un error al cargar los datos del usuario.");
+        }
+      });
+    }
+    $(document).ready(function () {
+      $('.btn-danger').click(function () {
+        var id = $(this).data('usuario-id');
+        $('#idusuario').val(id)
+      });
+    });
+    function borrarUsuario() {
+      document.getElementById("borrarUsuarioform").submit();
+    }
+    function editarUsuario() {
+      document.getElementById("editarForm").submit();
+    }
+    function agregarUsuario() {
+      document.getElementById("agregarForm").submit();
+    }
+    function validarContraseña() {
+      var contraseña = $("#contraseña").val();
+      var rcontraseña = $("#rcontraseña").val();
+      var errorMensaje = "Las contraseñas no coinciden";
+
+      if (contraseña !== rcontraseña) {
+        $("#contraseñaError").text(errorMensaje);
+        $("#contraseñaError").show();
+        $("#contraseña").addClass("is-invalid");
+        $("#rcontraseña").addClass("is-invalid");
+      } else {
+        $("#contraseñaError").hide();
+        $("#contraseña").removeClass("is-invalid");
+        $("#rcontraseña").removeClass("is-invalid");
+      }
+    }
+
+    $("#rcontraseña").on("input", function () {
+      validarContraseña();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    flatpickr("#fechanacimiento", {
+      dateFormat: "d-m-Y"
+    });
+  </script>
+  <script src="{{ url_for('static', filename='vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+  <script src="{{url_for('static', filename='vendor/jquery/jquery.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js')}}"></script>
+  <script src="{{url_for('static', filename='js/script.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js')}}"></script>
+  <!-- Page level custom scripts -->
+  <script>
+    $(document).ready(function () {
+      $('#dataTable').DataTable(); // ID From dataTable 
+      $('#dataTableHover').DataTable(); // ID From dataTable with Hover
+    });
+  </script>
+  {% endblock %}

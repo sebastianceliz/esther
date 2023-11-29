@@ -1,0 +1,377 @@
+<head>
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}" />
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css')}}" />
+  <!-- Bootstrap DatePicker -->
+
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap-datepicker/css/bootstrap-datepicker.min.css')}}" />
+
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap-touchspin/css/jquery.bootstrap-touchspin.css')}}" />
+
+</head>
+
+{% extends 'base/baseAdmin.html'%}
+
+{% block contenido %}
+<!-- Container Fluid-->
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="inicio">Menú Principal</a></li>
+      <li class="breadcrumb-item">Evaluación</li>
+      <li class="breadcrumb-item active" aria-current="page">Evaluación del paciente</li>
+    </ol>
+  </div>
+
+  <!-- Row -->
+  <!-- General Element -->
+  <div class="card mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Evaluación del paciente</h6>
+    </div>
+    <div class="card-body">
+      <form id="evaluacionForm">
+        <div class="form-group">
+          <label for="dnied">DNI</label>
+          <input type="text" class="form-control" id="dnied" name="dnied" oninput="validarCampoNumerico(this)"
+            maxlength="8" placeholder="Ingrese el DNI a buscar" min="0" required>
+          <button type="button" class="btn btn-primary" onclick="buscarDNIEditar()">Buscar</button>
+        </div>
+        <div class="form-group">
+          <label for="nombresc">Nombres</label>
+          <input type="text" class="form-control" id="nombresc" name="nombresc" placeholder="Nombres Completos"
+            readonly>
+        </div>
+        <div class="form-group" id="simple-date2">
+          <label for="oneYearView">Selecciona la fecha de nacimiento:</label>
+          <div class="input-group date">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+            </div>
+            <input type="text" class="form-control" value="01/06/2020" id="oneYearView">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="alturaPaciente">Indique la altura del paciente:</label>
+          <input id="touchSpin1" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="pesoPaciente">Indique el peso del paciente:</label>
+          <input id="touchSpin7" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="generoPaciente">Género:</label>
+          <select class="form-control" id="generoPaciente">
+            <option value="0">Masculino</option>
+            <option value="1">Femenino</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fumaPaciente">¿El paciente fuma?</label>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="fumaSi" name="fumaPaciente" class="custom-control-input" value="1">
+            <label class="custom-control-label" for="fumaSi">Sí</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="fumaNo" name="fumaPaciente" class="custom-control-input" value="0">
+            <label class="custom-control-label" for="fumaNo">No</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="medicamentosPaciente">¿El paciente toma medicamentos para la presión?</label>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="medicamentosSi" name="medicamentosPaciente" class="custom-control-input" value="1">
+            <label class="custom-control-label" for="medicamentosSi">Sí</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="medicamentosNo" name="medicamentosPaciente" class="custom-control-input" value="0">
+            <label class="custom-control-label" for="medicamentosNo">No</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="hipertensionPaciente">¿El paciente sufre de hipertensión?</label>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="hipertensionSi" name="hipertensionPaciente" class="custom-control-input" value="1">
+            <label class="custom-control-label" for="hipertensionSi">Sí</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="hipertensionNo" name="hipertensionPaciente" class="custom-control-input" value="0">
+            <label class="custom-control-label" for="hipertensionNo">No</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="diabetesPaciente">¿El paciente sufre de diabetes?</label>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="diabetesSi" name="diabetesPaciente" class="custom-control-input" value="1">
+            <label class="custom-control-label" for="diabetesSi">Sí</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="diabetesNo" name="diabetesPaciente" class="custom-control-input" value="0">
+            <label class="custom-control-label" for="diabetesNo">No</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="colesterolPaciente">Escriba el nivel de colesterol del paciente:</label>
+          <input id="touchSpin2" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="presionSistolica">Escriba la presión arterial sistólica del paciente:</label>
+          <input id="touchSpin3" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="presionDiastolica">Escriba la presión arterial diastólica del paciente:</label>
+          <input id="touchSpin4" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="pulsoPaciente">Indique la presión cardíaca del paciente:</label>
+          <input id="touchSpin5" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="glucosaPaciente">Ingrese el nivel de glucosa del paciente:</label>
+          <input id="touchSpin6" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="comentariosPaciente">Comentarios:</label>
+          <textarea class="form-control" id="comentariosPaciente" rows="3"></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" id="empezarEvaluacionBtn" onclick="analizar()">Empezar Evaluación</button>
+      </form>
+    </div>
+  </div>
+
+  <!--Row-->
+  <!-- Modal de carga -->
+  <div class="modal" id="loadingModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          Cargando...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de resultado -->
+  <div class="modal" id="resultadoModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <p>La probabilidad de tener enfermedades cardiovasculares es de: <span id="resultadoValor"></span>%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function analizar() {
+      var datosPreguntas = {
+        fechaNacimiento: $('#oneYearView').val(),
+        altura: $('#touchSpin1').val(),
+        genero: $('#generoPaciente').val(),
+        fuma: $('input[name="fumaPaciente"]:checked').val(),
+        medicamentos: $('input[name="medicamentosPaciente"]:checked').val(),
+        hipertension: $('input[name="hipertensionPaciente"]:checked').val(),
+        diabetes: $('input[name="diabetesPaciente"]:checked').val(),
+        colesterol: $('#touchSpin2').val(),
+        presionSistolica: $('#touchSpin3').val(),
+        presionDiastolica: $('#touchSpin4').val(),
+        pulso: $('#touchSpin5').val(),
+        glucosa: $('#touchSpin6').val(),
+        peso: $('#touchSpin7').val(),
+        comentarios: $('#comentariosPaciente').val()
+      };
+
+      fetch("/analizar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ lista: datosPreguntas })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("resultadoValor").value = data['resultado'];
+          $('#resultadoValor').text(data['resultado']);
+          $('#resultadoModal').modal('show');
+
+        })
+        .catch(error => console.error(error));
+    }
+
+    function buscarDNIEditar() {
+      const dniInput = document.getElementById("dnied").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresc").value = data['nombre'];
+        })
+        .catch(error => console.error(error));
+    }
+    $(document).ready(function () {
+
+      $('#simple-date2 .input-group.date').datepicker({
+        startView: 1,
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true,
+        todayBtn: 'linked',
+      });
+      $('#touchSpin1').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      $('#touchSpin2').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      $('#touchSpin3').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      $('#touchSpin4').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      $('#touchSpin5').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      $('#touchSpin6').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      $('#touchSpin7').TouchSpin({
+        min: 0,
+        max: 1000,
+        decimals: 2,
+        step: 0.1,
+        initval: 0,
+        boostat: 5,
+        maxboostedstep: 5
+      });
+      // Capturar el evento de clic en el botón de editar
+      $('.btn-primary').click(function () {
+        // Obtener los datos de la fila correspondiente
+        var id = $(this).data('alimento-id');
+        var nombre = $(this).closest('tr').find('td:nth-child(2)').text();
+        var proteinas = $(this).closest('tr').find('td:nth-child(3)').text();
+        var carbohidratos = $(this).closest('tr').find('td:nth-child(4)').text();
+        var lipidos = $(this).closest('tr').find('td:nth-child(5)').text();
+        var etiqueta = $(this).closest('tr').find('td:nth-child(6)').text().trim(); // Trim para eliminar espacios en blanco
+
+        // Establecer los valores en el modal
+        $('#agregarModalLabel').text('Editar Alimento');
+        $('#idalimento').val(id)
+        $('#nombre').val(nombre);
+        $('#proteinas').val(proteinas);
+        $('#carbohidratos').val(carbohidratos);
+        $('#lipidos').val(lipidos);
+        $('#etiqueta').val(etiqueta).change();
+        $('#registrar-alimento-btn').text('Actualizar datos')
+
+
+        // Actualizar el atributo data-alimento-id del botón de registrar
+        $('#registrar-alimento-btn').data('alimento-id', id);
+      });
+
+      $('.btn-danger').click(function () {
+        var id = $(this).data('alimento-id');
+        $('#idalimentob').val(id)
+      })
+    });
+    function deleteFormSubmit() {
+      document.getElementById("borrarAlimentoform").submit();
+    }
+    function agregarAlimento() {
+      document.getElementById("agregarForm").submit();
+    }
+    function editarAlimento() {
+      document.getElementById("editarForm").submit();
+    }
+  </script>
+  <script>
+    // Función para mostrar el modal de carga
+    function mostrarModalCarga() {
+      $('#loadingModal').modal('show');
+    }
+
+    // Función para ocultar el modal de carga
+    function ocultarModalCarga() {
+      $('#loadingModal').modal('hide');
+    }
+
+    // Función para mostrar el modal de resultado
+    function mostrarModalResultado(resultado) {
+      document.getElementById("resultadoValor").innerText = resultado;
+      $('#resultadoModal').modal('show');
+    }
+  </script>
+  <!-- Scroll to top -->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <script src="{{url_for('static', filename='vendor/jquery/jquery.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js')}}"></script>
+  <script src="{{url_for('static', filename='js/script.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js')}}"></script>
+
+  <script src="{{url_for('static', filename='vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/bootstrap-touchspin/js/jquery.bootstrap-touchspin.js')}}"></script>
+
+
+
+
+  <!-- Page level custom scripts -->
+  <script>
+    $(document).ready(function () {
+      $('#dataTable').DataTable(); // ID From dataTable 
+      $('#dataTableHover').DataTable(); // ID From dataTable with Hover
+    });
+  </script>
+  {% endblock %}

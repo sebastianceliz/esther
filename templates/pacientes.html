@@ -1,0 +1,645 @@
+<head>
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}" />
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{ url_for('static', filename='vendor/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}">
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap-touchspin/css/jquery.bootstrap-touchspin.css')}}" />
+  <style>
+    .modal-content {
+      max-height: 600px;
+      max-width: 500px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+
+{% extends 'base/base.html'%}
+
+{% block contenido %}
+<!-- Container Fluid-->
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="inicio">Menú Principal</a></li>
+      <li class="breadcrumb-item">Mantenimiento</li>
+      <li class="breadcrumb-item active" aria-current="page">Pacientes</li>
+    </ol>
+  </div>
+
+  <!-- Row -->
+  <div class="row">
+    <!-- Datatables -->
+    <div class="col-lg-12">
+      <div class="card mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Pacientes</h6>
+          <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#registrarModal">
+            Agregar Paciente
+          </button>
+        </div>
+        <div class="table-responsive p-3">
+          <table class="table align-items-center table-flush" id="dataTable">
+            <thead class="thead-light">
+              <tr>
+                <th>ID</th>
+                <th>Nombres</th>
+                <th>Fecha Nacimiento</th>
+                <th>Género</th>
+                <th>Peso</th>
+                <th>Altura</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for paciente in pacientes %}
+              <tr>
+                <td>{{ paciente[0] }}</td>
+                <td>{{ paciente[1] }}</td>
+                <td>{{ paciente[2] }}</td>
+                <td>{{ paciente[3] }}</td>
+                <td>{{ paciente[4] }}</td>
+                <td>{{ paciente[5] }}</td>
+                <td>
+                  <div class="button-container">
+                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal"
+                      data-target="#evaluacionpaciente" data-paciente-id="{{ paciente[0] }}"
+                      data-paciente-nombre="{{ paciente[1] }}" onclick="cargarDatosPacienteEv(this)">
+                      <i class="fas fa-check"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#agregarModal"
+                      data-paciente-id="{{ paciente[0] }}" onclick="">
+                      <i class="fas fa-edit"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal"
+                      data-target="#confirmDeleteModal" data-paciente-id="{{ paciente[0] }}">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Row-->
+  <!-- Scroll to top -->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+  <!-- Modal Agregar/Editar Alimento -->
+  <div class="modal fade" id="agregarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Editar Paciente</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editarForm" action="/editarpaciente" method="post">
+            <div class="form-group">
+              <label for="idpacientes">ID del Paciente</label>
+              <input type="text" class="form-control" id="idpacientes" name="idpacientes" readonly>
+            </div>
+            <div class="form-group">
+              <label for="dniag">DNI</label>
+              <input type="text" class="form-control" id="dnied" name="dnied" oninput="validarCampoNumerico(this)"
+                maxlength="8" placeholder="Ingrese el DNI a buscar" min="0" required>
+              <button type="button" class="btn btn-primary" onclick="buscarDNIEditar()">Buscar</button>
+            </div>
+            <div class="form-group">
+              <label for="nombresag">Nombres</label>
+              <input type="text" class="form-control" id="nombresed" name="nombresed" placeholder="Nombres Completos"
+                readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Paterno</label>
+              <input type="text" class="form-control" id="apellidospaed" name="apellidospaed"
+                placeholder="Apellido Paterno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Materno</label>
+              <input type="text" class="form-control" id="apellidosmaed" name="apellidosmaed"
+                placeholder="Apellido Materno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechanacimiento" name="fechanacimiento"
+                placeholder="Seleccione la fecha de nacimiento" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="correo">Correo Electrónico</label>
+              <input type="email" class="form-control" id="correo" name="correo"
+                placeholder="Ingrese su correo electrónico" required>
+            </div>
+            <div class="form-group">
+              <label for="genero">Género</label>
+              <select class="form-control" id="genero" name="genero">
+                <option value="0">Masculino</option>
+                <option value="1">Femenino</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="peso">Peso</label>
+              <input type="number" class="form-control" id="peso" name="peso" placeholder="Ingrese su peso" min="0"
+                step="0.01" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="editarPaciente()">Editar Paciente</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Agregar/Editar Alimento -->
+  <div class="modal fade" id="registrarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Agregar Paciente</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="agregarForm" action="/agregarpaciente" method="post">
+            <div class="form-group">
+              <label for="dniag">DNI</label>
+              <input type="text" class="form-control" id="dniag" name="dniag" oninput="validarCampoNumerico(this)"
+                maxlength="8" placeholder="Ingrese el DNI a buscar" min="0" required>
+              <button type="button" class="btn btn-primary" onclick="buscarDNIAgregar()">Buscar</button>
+            </div>
+            <div class="form-group">
+              <label for="nombresag">Nombres</label>
+              <input type="text" class="form-control" id="nombresag" name="nombresag" placeholder="Nombres Completos"
+                readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Paterno</label>
+              <input type="text" class="form-control" id="apellidospaag" name="apellidospaag"
+                placeholder="Apellido Paterno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Materno</label>
+              <input type="text" class="form-control" id="apellidosmaag" name="apellidosmaag"
+                placeholder="Apellido Materno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechanacimiento" name="fechanacimiento"
+                placeholder="Seleccione la fecha de nacimiento" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="genero">Género</label>
+              <select class="form-control" id="genero" name="genero">
+                <option value="0">Masculino</option>
+                <option value="1">Femenino</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="peso">Peso</label>
+              <input type="number" class="form-control" id="peso" name="peso" placeholder="Ingrese el peso del paciente"
+                min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="altura">Altura</label>
+              <input type="number" class="form-control" id="altura" name="altura"
+                placeholder="Ingrese la altura del paciente" min="0" step="0.01" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="agregarPaciente()">Registrar Paciente</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Evaluar Paciente -->
+  <div class="modal fade" id="evaluacionpaciente" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Evaluación Paciente</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="evaluacionForm">
+            <div class="form-group" style="display: none;">
+              <label for="idpaciente">ID del Paciente</label>
+              <input type="text" class="form-control" id="idpacienteev" name="idpacienteev" readonly>
+            </div>
+            <div class="form-group">
+              <label for="nombrepaciente">Nombres del Paciente:</label>
+              <input type="text" class="form-control" id="nombrepaciente" name="nombrepaciente" readonly>
+            </div>
+            <div class="form-group">
+              <label for="fumaPaciente">¿El paciente fuma?</label>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="fumaSi" name="fumaPaciente" class="custom-control-input" value="1">
+                <label class="custom-control-label" for="fumaSi">Sí</label>
+              </div>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="fumaNo" name="fumaPaciente" class="custom-control-input" value="0">
+                <label class="custom-control-label" for="fumaNo">No</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="medicamentosPaciente">¿El paciente toma medicamentos para la presión?</label>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="medicamentosSi" name="medicamentosPaciente" class="custom-control-input"
+                  value="1">
+                <label class="custom-control-label" for="medicamentosSi">Sí</label>
+              </div>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="medicamentosNo" name="medicamentosPaciente" class="custom-control-input"
+                  value="0">
+                <label class="custom-control-label" for="medicamentosNo">No</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="hipertensionPaciente">¿El paciente sufre de hipertensión?</label>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="hipertensionSi" name="hipertensionPaciente" class="custom-control-input"
+                  value="1">
+                <label class="custom-control-label" for="hipertensionSi">Sí</label>
+              </div>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="hipertensionNo" name="hipertensionPaciente" class="custom-control-input"
+                  value="0">
+                <label class="custom-control-label" for="hipertensionNo">No</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="diabetesPaciente">¿El paciente sufre de diabetes?</label>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="diabetesSi" name="diabetesPaciente" class="custom-control-input" value="1">
+                <label class="custom-control-label" for="diabetesSi">Sí</label>
+              </div>
+              <div class="custom-control custom-radio">
+                <input type="radio" id="diabetesNo" name="diabetesPaciente" class="custom-control-input" value="0">
+                <label class="custom-control-label" for="diabetesNo">No</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="colesterolPaciente">Escriba el nivel de colesterol del paciente:</label>
+              <input type="number" class="form-control" id="colesterolPaciente" name="colesterolPaciente"
+                placeholder="Ingrese el valor" min="0" step="0.01" required oninput="validarColesterol()">
+              <p id="mensajeColesterol" class="colesterol-normal">Colesterol Normal</p>
+
+            </div>
+            <script>
+              function validarColesterol() {
+                var presionSistolica = parseFloat(document.getElementById("colesterolPaciente").value);
+                var mensajePresion = document.getElementById("mensajeColesterol");
+
+                if (presionSistolica < 100 && presionSistolica >40 ) {
+                  mensajePresion.textContent = "Colesterol Bueno";
+                  mensajePresion.className = "colesterol-normal";
+                } else {
+                  mensajePresion.textContent = "Colesterol Malo";
+                  mensajePresion.className = "colesterol-anormal";
+                }
+              }
+            </script>
+            <div class="form-group">
+              <label for="presionSistolica">Escriba la presión arterial sistólica del paciente:</label>
+              <input type="number" class="form-control" id="presionSistolica" name="presionSistolica"
+                placeholder="Ingrese el valor" min="0" step="0.01" required oninput="validarPresionS()">
+              <p id="mensajePresion" class="presion-normal">Presión Sistólica Normal</p>
+            </div>
+
+            <script>
+              function validarPresionS() {
+                var presionSistolica = parseFloat(document.getElementById("presionSistolica").value);
+                var mensajePresion = document.getElementById("mensajePresion");
+
+                if (presionSistolica < 120) {
+                  mensajePresion.textContent = "Presión Sistólica Normal";
+                  mensajePresion.className = "presion-normal";
+                } else {
+                  mensajePresion.textContent = "Presión Sistólica Alta";
+                  mensajePresion.className = "presion-anormal";
+                }
+              }
+            </script>
+            <div class="form-group">
+              <label for="presionDiastolica">Escriba la presión arterial diastólica del paciente:</label>
+              <input type="number" class="form-control" id="presionDiastolica" name="presionDiastolica"
+                placeholder="Ingrese el valor" min="0" step="0.01" required oninput="validarPresionD()">
+              <p id="mensajePresionD" class="presion-normalD">Presión Diástólica Normal</p>
+            </div>
+            <script>
+              function validarPresionD() {
+                var presionSistolica = parseFloat(document.getElementById("presionDiastolica").value);
+                var mensajePresion = document.getElementById("mensajePresionD");
+
+                if (presionSistolica < 80) {
+                  mensajePresion.textContent = "Presión Diástólica Normal";
+                  mensajePresion.className = "presion-normald";
+                } else {
+                  mensajePresion.textContent = "Presión Diástólica Alta";
+                  mensajePresion.className = "presion-anormalD";
+                }
+              }
+            </script>
+            <div class="form-group">
+              <label for="pulsoPaciente">Indique la presión cardíaca del paciente:</label>
+              <input type="number" class="form-control" id="pulsoPaciente" name="pulsoPaciente"
+                placeholder="Ingrese el valor" min="0" step="0.01" required oninput="validarPresionC()">
+              <p id="mensajePresionC" class="presion-normalC">Presión Cardiaca Normal</p>
+
+            </div>
+            <script>
+              function validarPresionC() {
+                var presionSistolica = parseFloat(document.getElementById("pulsoPaciente").value);
+                var mensajePresion = document.getElementById("mensajePresionC");
+
+                if (presionSistolica >= 60 && presionSistolica <= 100) {
+                  mensajePresion.textContent = "Presión Cardiaca Normal";
+                  mensajePresion.className = "presion-normalC";
+                } else if (presionSistolica < 60) {
+                  mensajePresion.textContent = "Presión Cardiaca Baja";
+                  mensajePresion.className = "presion-baja";
+                } else {
+                  mensajePresion.textContent = "Presión Cardiaca Alta";
+                  mensajePresion.className = "presion-alta";
+                }
+              }
+            </script>
+            <div class="form-group">
+              <label for="glucosaPaciente">Ingrese el nivel de glucosa del paciente:</label>
+              <input type="number" class="form-control" id="glucosaPaciente" name="glucosaPaciente"
+                placeholder="Ingrese el valor" min="0" step="0.01" required oninput="validarGlucosa()">
+              <p id="glucosa" class="glucosa-normal">Glucosa Normal</p>
+            </div>
+            <script>
+              function validarGlucosa() {
+                var presionSistolica = parseFloat(document.getElementById("glucosaPaciente").value);
+                var mensajePresion = document.getElementById("glucosa");
+
+                if (presionSistolica < 100) {
+                  mensajePresion.textContent = "Glucosa Normal";
+                  mensajePresion.className = "glucosa-normal";
+                } else {
+                  mensajePresion.textContent = "Glucosa Alta";
+                  mensajePresion.className = "glucosa-alta";
+                }
+              }
+            </script>
+            <div class="form-group">
+              <label for="comentariosPaciente">Comentarios:</label>
+              <textarea class="form-control" id="comentariosPaciente" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="empezarEvaluacionBtn" onclick="analizar()">Empezar
+            Evaluación</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal de resultado -->
+  <div class="modal" id="resultadoModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <span id="resultadoValor"></span>
+          <h1>Recomendaciones basadas en Rangos de Probabilidad</h1>
+          <p>Las recomendaciones para prevenir enfermedades cardiovasculares varían según el rango de probabilidad:</p>
+
+          <p><strong>0-20%:</strong> En este rango, es fundamental mantener un estilo de vida saludable. Prioriza una
+            dieta equilibrada y rica en frutas, verduras y proteínas magras. Realiza ejercicio regularmente, al menos
+            150 minutos a la semana. Controla el estrés y mantén un peso saludable.</p>
+
+          <p><strong>20-50%:</strong> Si te encuentras en este rango, considera consultar a un médico para una
+            evaluación más detallada. Es posible que necesites realizar exámenes adicionales y modificar tu estilo de
+            vida. Continúa con una alimentación saludable y ejercicio, y elimina factores de riesgo como el tabaquismo.
+          </p>
+
+          <p><strong>50-90%:</strong> Un rango de probabilidad tan alto indica un riesgo significativo de enfermedades
+            cardiovasculares. Busca atención médica de inmediato. Tu médico te brindará orientación específica,
+            incluyendo cambios en la dieta, medicamentos y posiblemente procedimientos médicos.</p>
+
+          <p><strong>100%:</strong> Una probabilidad del 100% es un signo de alta certeza de enfermedad cardiovascular.
+            Consulta a un especialista en enfermedades cardiovasculares sin demora. Se requerirá un enfoque médico
+            completo para el diagnóstico y tratamiento.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de eliminación -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Advertencia</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="borrarPacienteform" action="/borrarpaciente" method="post">
+          <input id="idpacienteborrar" name="idpacienteborrar" hidden>
+          <div class="modal-body">
+            <p>Se eliminarán todos los datos del paciente.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" onclick="borrarPaciente()">Eliminar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function cargarDatosPacienteEv(button) {
+      document.getElementById("idpacienteev").value = $(button).data("paciente-id");
+      document.getElementById("nombrepaciente").value = $(button).data("paciente-nombre");
+    }
+    function analizar() {
+      var datosPreguntas = {
+        idpaciente: $('#idpacienteev').val(),
+        fuma: $('input[name="fumaPaciente"]:checked').val(),
+        medicamentos: $('input[name="medicamentosPaciente"]:checked').val(),
+        hipertension: $('input[name="hipertensionPaciente"]:checked').val(),
+        diabetes: $('input[name="diabetesPaciente"]:checked').val(),
+        colesterol: $('#colesterolPaciente').val(),
+        presionSistolica: $('#presionSistolica').val(),
+        presionDiastolica: $('#presionDiastolica').val(),
+        pulso: $('#pulsoPaciente').val(),
+        glucosa: $('#glucosaPaciente').val(),
+        comentarios: $('#comentariosPaciente').val()
+      };
+
+      fetch("/analizar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ lista: datosPreguntas })
+      })
+        .then(response => response.json())
+        .then(data => {
+          $('#evaluacionpaciente').modal('hide');
+          if (data['resultado'] ==100) {
+            alert('el paciente es propenso a sufrir enfermedades cardiovasculares.');
+          } else {
+            alert('el paciente no es propenso a sufrir enfermedades cardiovasculares');
+          }
+          alert(data['resultado']);
+          //document.getElementById("resultadoValor").innerText = resultado;
+          //document.getElementById("resultadoValor").innerText = data['resultado'];
+          //document.getElementById("resultadoValor").value = data['resultado'];
+          //$('#resultadoValor').value = data['resultado'];
+          //$('#resultadoModal').modal('show');
+
+        })
+        .catch(error => console.error(error));
+    }
+    function validarCampoNumerico(input) {
+      // Eliminamos cualquier carácter no numérico
+      input.value = input.value.replace(/[^0-9]/g, '');
+    }
+    function buscarDNIAgregar() {
+      const dniInput = document.getElementById("dniag").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresag").value = data['nombres'];
+          document.getElementById("apellidospaag").value = data['apellidoPaterno'];
+          document.getElementById("apellidosmaag").value = data['apellidoMaterno'];
+        })
+        .catch(error => console.error(error));
+    }
+    function buscarDNIEditar() {
+      const dniInput = document.getElementById("dnied").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresed").value = data['nombres'];
+          document.getElementById("apellidospaed").value = data['apellidoPaterno'];
+          document.getElementById("apellidosmaed").value = data['apellidoMaterno'];
+        })
+        .catch(error => console.error(error));
+    }
+  </script>
+  <script>
+    // Función para mostrar el modal de carga
+    function mostrarModalCarga() {
+      $('#loadingModal').modal('show');
+    }
+
+    // Función para ocultar el modal de carga
+    function ocultarModalCarga() {
+      $('#loadingModal').modal('hide');
+    }
+
+    // Función para mostrar el modal de resultado
+    function mostrarModalResultado(resultado) {
+      document.getElementById("resultadoValor").innerText = resultado;
+      $('#resultadoModal').modal('show');
+    }
+  </script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('.btn-danger').click(function () {
+        var id = $(this).data('paciente-id');
+        $('#idpacienteborrar').val(id)
+      })
+    });
+    function borrarPaciente() {
+      document.getElementById("borrarPacienteform").submit();
+    }
+    function editarPaciente() {
+      document.getElementById("editarForm").submit();
+    }
+    function agregarPaciente() {
+      document.getElementById("agregarForm").submit();
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    flatpickr("#fechanacimiento", {
+      dateFormat: "d-m-Y"
+    });
+    document.getElementById('pacientesCombo').addEventListener('change', function () {
+      var seleccionado = this.value;
+      var valores = seleccionado.slice(2, -3).split('-');
+
+      var id = valores[0];
+      var nombreCompleto = valores[1].split('_');
+      var correo = valores[2];
+      $('#idpacientesag').val(id);
+      $('#nombresag').val(nombreCompleto[0]);
+      $('#apellidosag').val(nombreCompleto[1]);
+      $('#correoag').val(correo);
+    });
+  </script>
+
+  <script src="{{url_for('static', filename='vendor/bootstrap-touchspin/js/jquery.bootstrap-touchspin.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/jquery/jquery.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js')}}"></script>
+  <script src="{{url_for('static', filename='js/script.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js')}}"></script>
+
+  <!-- Page level custom scripts -->
+  <script>
+    $(document).ready(function () {
+      $('#dataTable').DataTable();
+      $('#dataTableHover').DataTable();
+    });
+  </script>
+  {% endblock %}

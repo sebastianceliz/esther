@@ -1,0 +1,343 @@
+<head>
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}" />
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css')}}" />
+  <link rel="stylesheet" type="text/css"
+    href="{{ url_for('static', filename='vendor/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}">
+</head>
+
+{% extends 'base/baseAdmin.html'%}
+
+{% block contenido %}
+<!-- Container Fluid-->
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="inicioAdmin">Menú Principal</a></li>
+      <li class="breadcrumb-item">Mantenimiento</li>
+      <li class="breadcrumb-item active" aria-current="page">Pacientes</li>
+    </ol>
+  </div>
+
+  <!-- Row -->
+  <div class="row">
+    <!-- Datatables -->
+    <div class="col-lg-12">
+      <div class="card mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Pacientes</h6>
+          <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#registrarModal">
+            Agregar Trabajador
+          </button>
+        </div>
+        <div class="table-responsive p-3">
+          <table class="table align-items-center table-flush" id="dataTable">
+            <thead class="thead-light">
+              <tr>
+                <th>ID</th>
+                <th>Nombres</th>
+                <th>Género</th>
+                <th>Fecha Nacimiento</th>
+                <th>Correo Electrónico</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trabajador in trabajadores %}
+              <tr>
+                <td>{{ trabajador[0] }}</td>
+                <td>{{ trabajador[1] }}</td>
+                <td>{{ trabajador[2] }}</td>
+                <td>{{ trabajador[3] }}</td>
+                <td>{{ trabajador[4] }}</td>
+                <td>
+                  <div class="button-container">
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#agregarModal"
+                      data-paciente-id="{{ trabajador[0] }}" onclick="cargarDatosPaciente(this)">
+                      <i class="fas fa-edit"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal"
+                      data-target="#confirmDeleteModal" data-trabajador-id="{{ trabajador[0] }}">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Row-->
+  <!-- Scroll to top -->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+  <!-- Modal Agregar/Editar Alimento -->
+  <div class="modal fade" id="agregarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Editar Paciente</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editarForm" action="/editarpaciente" method="post">
+            <div class="form-group">
+              <label for="idpacientes">ID del Paciente</label>
+              <input type="text" class="form-control" id="idpacientes" name="idpacientes" readonly>
+            </div>
+            <div class="form-group">
+              <label for="dniag">DNI</label>
+              <input type="text" class="form-control" id="dnied" name="dnied" oninput="validarCampoNumerico(this)"
+                maxlength="8" placeholder="Ingrese el DNI a buscar" min="0" required>
+              <button type="button" class="btn btn-primary" onclick="buscarDNIEditar()">Buscar</button>
+            </div>
+            <div class="form-group">
+              <label for="nombresag">Nombres</label>
+              <input type="text" class="form-control" id="nombresed" name="nombresed" placeholder="Nombres Completos"
+                readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Paterno</label>
+              <input type="text" class="form-control" id="apellidospaed" name="apellidospaed"
+                placeholder="Apellido Paterno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Materno</label>
+              <input type="text" class="form-control" id="apellidosmaed" name="apellidosmaed"
+                placeholder="Apellido Materno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechanacimiento" name="fechanacimiento"
+                placeholder="Seleccione la fecha de nacimiento" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="correo">Correo Electrónico</label>
+              <input type="email" class="form-control" id="correo" name="correo"
+                placeholder="Ingrese su correo electrónico" required>
+            </div>
+            <div class="form-group">
+              <label for="genero">Género</label>
+              <select class="form-control" id="genero" name="genero">
+                <option value="0">Masculino</option>
+                <option value="1">Femenino</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="peso">Peso</label>
+              <input type="number" class="form-control" id="peso" name="peso" placeholder="Ingrese su peso" min="0"
+                step="0.01" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="editarPaciente()">Editar Paciente</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Agregar -->
+  <div class="modal fade" id="registrarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agregarModalLabel">Agregar Paciente</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="agregarForm" action="/agregarpaciente" method="post">
+            <div class="form-group">
+              <label for="idpacientesag">ID del Paciente</label>
+              <input type="text" class="form-control" id="idpacientesag" name="idpacientesag" readonly>
+            </div>
+            <div class="form-group">
+              <label for="dniag">DNI</label>
+              <input type="text" class="form-control" id="dniag" name="dniag" oninput="validarCampoNumerico(this)"
+                maxlength="8" placeholder="Ingrese el DNI a buscar" min="0" required>
+              <button type="button" class="btn btn-primary" onclick="buscarDNIAgregar()">Buscar</button>
+            </div>
+            <div class="form-group">
+              <label for="nombresag">Nombres</label>
+              <input type="text" class="form-control" id="nombresag" name="nombresag" placeholder="Nombres Completos"
+                readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Paterno</label>
+              <input type="text" class="form-control" id="apellidospaag" name="apellidospaag"
+                placeholder="Apellido Paterno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="apellidosag">Apellido Materno</label>
+              <input type="text" class="form-control" id="apellidosmaag" name="apellidosmaag"
+                placeholder="Apellido Materno" readonly>
+            </div>
+            <div class="form-group">
+              <label for="fecha">Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechanacimiento" name="fechanacimiento"
+                placeholder="Seleccione la fecha de nacimiento" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+            <div class="form-group">
+              <label for="correoag">Correo Electrónico</label>
+              <input type="email" class="form-control" id="correoag" name="correoag"
+                placeholder="Ingrese su correo electrónico" required>
+            </div>
+            <div class="form-group">
+              <label for="peso">Peso</label>
+              <input type="number" class="form-control" id="peso" name="peso" placeholder="Ingrese su peso" min="0"
+                step="0.01" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="agregarPaciente()">Registrar Paciente</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal de confirmación de eliminación -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Advertencia</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="borrarTrabajadorform" action="/borrartrabajador" method="post">
+          <input id="idtrabajadorbo" name="idtrabajadorbo" value="" hidden>
+          <div class="modal-body">
+            <p>Se eliminarán todos los datos del trabajador.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" onclick="borrarTrabajador()">Eliminar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function validarCampoNumerico(input) {
+      // Eliminamos cualquier carácter no numérico
+      input.value = input.value.replace(/[^0-9]/g, '');
+    }
+    function buscarDNIAgregar() {
+      const dniInput = document.getElementById("dniag").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresag").value = data['nombres'];
+          document.getElementById("apellidospaag").value = data['apellidoPaterno'];
+          document.getElementById("apellidosmaag").value = data['apellidoMaterno'];
+        })
+        .catch(error => console.error(error));
+    }
+    function buscarDNIEditar() {
+      const dniInput = document.getElementById("dnied").value;
+
+      fetch("/buscardni", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dni: dniInput })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("nombresed").value = data['nombres'];
+          document.getElementById("apellidospaed").value = data['apellidoPaterno'];
+          document.getElementById("apellidosmaed").value = data['apellidoMaterno'];
+        })
+        .catch(error => console.error(error));
+    }
+  </script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('.btn-danger').click(function () {
+        var id = $(this).data('trabajador-id');
+        $('#idtrabajadorbo').val(id)
+      })
+    });
+    function borrarTrabajador() {
+      document.getElementById("borrarTrabajadorform").submit();
+    }
+    function editarPaciente() {
+      document.getElementById("editarForm").submit();
+    }
+    function agregarPaciente() {
+      document.getElementById("agregarForm").submit();
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    flatpickr("#fechanacimiento", {
+      dateFormat: "d-m-Y"
+    });
+    document.getElementById('pacientesCombo').addEventListener('change', function () {
+      var seleccionado = this.value;
+      var valores = seleccionado.slice(2, -3).split('-');
+
+      var id = valores[0];
+      var nombreCompleto = valores[1].split('_');
+      var correo = valores[2];
+      $('#idpacientesag').val(id);
+      $('#nombresag').val(nombreCompleto[0]);
+      $('#apellidosag').val(nombreCompleto[1]);
+      $('#correoag').val(correo);
+    });
+  </script>
+  <script src="{{url_for('static', filename='vendor/jquery/jquery.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js')}}"></script>
+  <script src="{{url_for('static', filename='js/script.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js')}}"></script>
+  <!-- Page level custom scripts -->
+  <script>
+    $(document).ready(function () {
+      $('#dataTable').DataTable();
+      $('#dataTableHover').DataTable();
+    });
+  </script>
+  {% endblock %}
